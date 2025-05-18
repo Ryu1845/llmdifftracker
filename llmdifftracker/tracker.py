@@ -125,7 +125,7 @@ class LLMDiffTracker:
         return diff_text, summary
 
 
-def patch_wandb(generate_run_name: bool = True, log_table: bool = True):
+def patch_wandb(generate_run_name: bool = True, log_table: bool = True, **llm_diff_kwargs):
     """Patches wandb.init to automatically track and log code changes."""
     try:
         import wandb
@@ -141,6 +141,7 @@ def patch_wandb(generate_run_name: bool = True, log_table: bool = True):
         tracker = LLMDiffTracker(
             api_key=os.getenv("FAL_KEY", os.getenv("OPENAI_API_KEY")),
             use_fal="FAL_KEY" in os.environ,
+            **llm_diff_kwargs,
         )
 
         diff_text, summary = tracker.track_changes()
