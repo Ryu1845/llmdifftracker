@@ -19,11 +19,14 @@ class LLMDiffTracker:
         file_pattern: str = "*.py",
         system_prompt: str = "Summarize code changes. Be concise, and only include the most important changes. If it's too much, just return 'Too much code changes.'.",
         use_fal: bool = True,
+        base_url: str = "https://api.openai.com/v1",
+        model: str = "gpt-4o-mini",
     ):
         self.cache_dir = cache_dir
         self.file_pattern = file_pattern
         self.system_prompt = system_prompt
         self.use_fal = use_fal
+        self.model = model
         if use_fal:
             os.environ["FAL_KEY"] = api_key
             import fal_client
@@ -32,7 +35,7 @@ class LLMDiffTracker:
         else:
             from openai import OpenAI
 
-            self.openai_client = OpenAI(api_key=api_key)
+            self.openai_client = OpenAI(api_key=api_key, base_url=base_url)
 
         os.makedirs(self.cache_dir, exist_ok=True)
         self.cache_file = os.path.join(self.cache_dir, "latest_dump.txt")
@@ -72,7 +75,7 @@ class LLMDiffTracker:
             return DiffSummary(diff_summary=result["output"].strip(), run_name=None)
         else:
             response = self.openai_client.beta.chat.completions.parse(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
                     {
